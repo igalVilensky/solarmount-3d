@@ -34,4 +34,6 @@ npm test
 
 ## Scope Note
 
-This repository is an interview/demo prototype. It is not professional engineering software and should not be used for technical design, safety-critical decisions, or production solar yield estimates.
+This repository is an interview/demo prototype. The current simulation uses a simplified sun path, synthetic weather factors, and illustrative power estimates only.
+
+It is not professional PV yield prediction software and should not be used for technical design, safety-critical decisions, or structural engineering.

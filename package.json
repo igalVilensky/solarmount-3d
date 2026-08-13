@@ -11,7 +11,8 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "nuxt": "^3.21.9"
+    "nuxt": "^3.21.9",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@nuxtjs/tailwindcss": "^6.14.0",
