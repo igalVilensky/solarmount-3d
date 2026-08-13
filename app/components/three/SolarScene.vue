@@ -1,9 +1,21 @@
 <script setup lang="ts">
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { createSolarPanel } from '~/lib/three/createSolarPanel'
 import { createSun } from '~/lib/three/createSun'
+import { getSunDirection } from '~~/shared/simulation'
+
+const props = withDefaults(defineProps<{
+  tilt: number
+  azimuth: number
+  sunAzimuth: number
+  sunElevation: number
+  isDaylight: boolean
+  weatherFactor?: number
+}>(), {
+  weatherFactor: 1,
+})
 
 const viewportRef = ref<HTMLDivElement | null>(null)
 
@@ -14,6 +26,48 @@ let controls: OrbitControls | null = null
 let resizeObserver: ResizeObserver | null = null
 let animationFrameId = 0
 let onWindowResize: (() => void) | null = null
+let sunGroup: THREE.Group | null = null
+let directionalLight: THREE.DirectionalLight | null = null
+let solarPanelRig: ReturnType<typeof createSolarPanel> | null = null
+
+const sunDistance = 9
+const baseLightIntensity = 2.8
+
+function degreesToRotationY(azimuthDegrees: number): number {
+  return THREE.MathUtils.degToRad(180 - azimuthDegrees)
+}
+
+function degreesToTiltRotationX(tiltDegrees: number): number {
+  return THREE.MathUtils.degToRad(-tiltDegrees)
+}
+
+function getSunWorldPosition(azimuthDegrees: number, elevationDegrees: number): THREE.Vector3 {
+  const direction = getSunDirection(azimuthDegrees, elevationDegrees)
+
+  return new THREE.Vector3(direction.x, direction.y, direction.z).multiplyScalar(sunDistance)
+}
+
+function syncSceneFromProps() {
+  if (solarPanelRig) {
+    solarPanelRig.azimuthGroup.rotation.y = degreesToRotationY(props.azimuth)
+    solarPanelRig.tiltPivot.rotation.x = degreesToTiltRotationX(props.tilt)
+  }
+
+  const sunPosition = getSunWorldPosition(props.sunAzimuth, props.sunElevation)
+
+  if (sunGroup && directionalLight) {
+    sunGroup.position.copy(sunPosition)
+    sunGroup.visible = props.isDaylight
+    directionalLight.position.copy(sunPosition)
+    directionalLight.intensity = props.isDaylight ? baseLightIntensity * Math.max(0.2, props.weatherFactor) : 0.12
+  }
+}
+
+watch(
+  () => [props.tilt, props.azimuth, props.sunAzimuth, props.sunElevation, props.isDaylight, props.weatherFactor],
+  () => syncSceneFromProps(),
+  { immediate: true, flush: 'post' },
+)
 
 function updateRendererSize() {
   if (!renderer || !camera || !viewportRef.value) {
@@ -129,21 +183,23 @@ onMounted(() => {
   }
   scene.add(grid)
 
-  const solarPanel = createSolarPanel()
-  solarPanel.root.traverse((object) => {
+  solarPanelRig = createSolarPanel()
+  solarPanelRig.root.traverse((object) => {
     if (object instanceof THREE.Mesh) {
       object.castShadow = true
       object.receiveShadow = true
     }
   })
-  scene.add(solarPanel.root)
+  scene.add(solarPanelRig.root)
 
-  const { sunGroup, light } = createSun()
+  const sunRig = createSun()
+  sunGroup = sunRig.sunGroup
+  directionalLight = sunRig.light
   scene.add(sunGroup)
-  light.target.position.set(0, 0.32, 0.26)
-  light.position.copy(sunGroup.position)
-  scene.add(light.target)
-  scene.add(light)
+  directionalLight.target.position.set(0, 0.32, 0.26)
+  directionalLight.position.copy(sunGroup.position)
+  scene.add(directionalLight.target)
+  scene.add(directionalLight)
 
   controls = new OrbitControls(camera, renderer.domElement)
   controls.enableDamping = true
@@ -164,6 +220,7 @@ onMounted(() => {
   resizeObserver = new ResizeObserver(() => updateRendererSize())
   resizeObserver.observe(container)
 
+  syncSceneFromProps()
   animate()
 })
 
@@ -191,6 +248,9 @@ onBeforeUnmount(() => {
   renderer = null
   scene = null
   camera = null
+  sunGroup = null
+  directionalLight = null
+  solarPanelRig = null
 })
 </script>
 

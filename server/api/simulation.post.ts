@@ -1,25 +1,13 @@
 import { defineEventHandler, readBody, setResponseStatus } from 'h3'
 import type { ZodIssue } from 'zod'
-import { simulateSolarConfiguration, solarSimulationInputSchema } from '../../shared/simulation'
-import type { SolarSimulationResult } from '../../shared/simulation'
+import { simulateSolarConfiguration, solarSimulationInputSchema } from '~~/shared/simulation'
+import type {
+  SimulationApiErrorResponse,
+  SimulationApiResponse,
+  SimulationApiValidationDetail,
+} from '~~/shared/api/simulation'
 
-type ValidationDetail = {
-  path: string
-  message: string
-  code: string
-}
-
-export type SimulationApiResponse = {
-  result: SolarSimulationResult
-}
-
-type SimulationApiErrorResponse = {
-  error: 'INVALID_SIMULATION_INPUT'
-  message: string
-  details: ValidationDetail[]
-}
-
-function formatValidationIssues(issues: ZodIssue[]): ValidationDetail[] {
+function formatValidationIssues(issues: ZodIssue[]): SimulationApiValidationDetail[] {
   return issues.slice(0, 5).map((issue) => ({
     path: issue.path.length > 0 ? issue.path.join('.') : 'body',
     message: issue.message,
@@ -27,7 +15,7 @@ function formatValidationIssues(issues: ZodIssue[]): ValidationDetail[] {
   }))
 }
 
-function invalidSimulationInput(event: Parameters<typeof setResponseStatus>[0], details: ValidationDetail[]): SimulationApiErrorResponse {
+function invalidSimulationInput(event: Parameters<typeof setResponseStatus>[0], details: SimulationApiValidationDetail[]): SimulationApiErrorResponse {
   setResponseStatus(event, 400)
 
   return {
