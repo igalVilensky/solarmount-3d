@@ -23,7 +23,7 @@ export function createSun(options: SunOptions = {}) {
 
   const light = new THREE.DirectionalLight(0xfff0d4, 2.8)
   light.name = 'SunLight'
-  light.position.set(-sunPosition[0], -sunPosition[1], -sunPosition[2])
+  light.position.set(...sunPosition)
   light.castShadow = true
   light.shadow.mapSize.set(1024, 1024)
   light.shadow.camera.near = 0.1
@@ -32,7 +32,6 @@ export function createSun(options: SunOptions = {}) {
   light.shadow.camera.right = 10
   light.shadow.camera.top = 10
   light.shadow.camera.bottom = -10
-  sunGroup.add(light)
 
   return { sunGroup, light }
 }

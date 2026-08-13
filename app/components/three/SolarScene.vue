@@ -69,7 +69,7 @@ onMounted(() => {
   scene.background = null
 
   camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100)
-  camera.position.set(6, 5, 8)
+  camera.position.set(6.6, 5.3, 8.4)
 
   renderer = new THREE.WebGLRenderer({
     antialias: true,
@@ -130,19 +130,20 @@ onMounted(() => {
   scene.add(grid)
 
   const solarPanel = createSolarPanel()
-  solarPanel.position.set(0, 0.1, 0.2)
-  solarPanel.traverse((object) => {
+  solarPanel.root.traverse((object) => {
     if (object instanceof THREE.Mesh) {
       object.castShadow = true
       object.receiveShadow = true
     }
   })
-  scene.add(solarPanel)
+  scene.add(solarPanel.root)
 
   const { sunGroup, light } = createSun()
   scene.add(sunGroup)
-  light.target.position.set(0, 0.15, 0.15)
+  light.target.position.set(0, 0.32, 0.26)
+  light.position.copy(sunGroup.position)
   scene.add(light.target)
+  scene.add(light)
 
   controls = new OrbitControls(camera, renderer.domElement)
   controls.enableDamping = true
@@ -152,7 +153,7 @@ onMounted(() => {
   controls.maxDistance = 16
   controls.minPolarAngle = THREE.MathUtils.degToRad(26)
   controls.maxPolarAngle = THREE.MathUtils.degToRad(78)
-  controls.target.set(0, 0.25, 0.15)
+  controls.target.set(0, 0.34, 0.18)
   controls.update()
 
   updateRendererSize()
