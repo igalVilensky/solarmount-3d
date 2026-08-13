@@ -114,11 +114,6 @@ export function createSolarPanel(options: SolarPanelOptions = {}): SolarPanelRig
   )
   mountingStructure.add(rearSupportRight)
 
-  const crossBrace = createBar(width * 0.3, 0.028, 0.028, structureMaterial)
-  crossBrace.position.set(0, (frontRailY + rearRailY) * 0.5, rearRailZ * 0.55)
-  crossBrace.rotation.z = Math.PI / 2
-  mountingStructure.add(crossBrace)
-
   const tiltPivot = new THREE.Group()
   tiltPivot.name = 'SolarPanelTiltPivot'
   tiltPivot.position.set(0, frontRailY + 0.015, 0.01)
