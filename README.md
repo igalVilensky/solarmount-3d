@@ -32,6 +32,58 @@ npm test
 - `shared/simulation/` for pure TypeScript domain logic
 - `tests/` for unit and API tests
 
+## API
+
+`POST /api/simulation`
+
+Request example:
+
+```json
+{
+  "panel": {
+    "tilt": 30,
+    "azimuth": 180,
+    "count": 6,
+    "nominalPowerWatts": 430
+  },
+  "environment": {
+    "timeHour": 13,
+    "weather": "sunny"
+  }
+}
+```
+
+Successful responses use a stable envelope:
+
+```json
+{
+  "result": {
+    "sun": {
+      "azimuth": 195,
+      "elevation": 62,
+      "isDaylight": true
+    },
+    "alignment": 0.94,
+    "weatherFactor": 1,
+    "maxArrayPowerWatts": 2580,
+    "estimatedPowerWatts": 2425,
+    "potentialPercent": 94,
+    "panelAreaSquareMeters": 1.9436,
+    "totalPanelAreaSquareMeters": 11.6616
+  }
+}
+```
+
+Invalid input returns HTTP 400 with:
+
+```json
+{
+  "error": "INVALID_SIMULATION_INPUT",
+  "message": "The simulation input is invalid.",
+  "details": []
+}
+```
+
 ## Scope Note
 
 This repository is an interview/demo prototype. The current simulation uses a simplified sun path, synthetic weather factors, and illustrative power estimates only.
